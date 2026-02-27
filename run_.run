@@ -1,0 +1,158 @@
+reset;
+load amplcsv.dll;
+
+option solver cplex;
+option cplex_options "mipgap = 0.1 gapabs=0.01 outlev=2 threads=12";
+
+suffix iis OUT;
+option cplex_options 'names=1 iis=1 conflictalg=4';
+
+model model.mod;
+data data.dat;
+
+table tab_d1 IN "amplcsv" "input-data/profiles_long.csv": [T,C], de_curve;
+read table tab_d1;
+
+data pros_data.dat;
+
+let tag := 0; # 0 linear / 2 conic
+
+# /*setting to solve without allocation*/
+#///////////////////////////////////////
+# fix {n in N} PV_allocation[n] := 0;
+# fix {n in N} battery_allocation[n] := 0;
+# fix {n in N} capacitor_allocation[n] := 0;
+
+# ----------------------------------
+# Passo 0: Inicialização
+# ----------------------------------
+param relaxation_factor := 0.7;
+param max_iter := 2;
+param tolerance := 1e-5;
+
+param V2est_prev {N,Y,S,T};
+
+# ----------------------------------
+# Loop Principal de Otimização
+# ----------------------------------
+for{iter in 1..max_iter} {
+    # Atualiza V2est_prev para relaxação/convergência
+    for{n in N, t in T, y in Y, s in S} {
+        let V2est_prev[n,y,s,t] := V2est[n,y,s,t];
+    }
+    # ------------------------------
+    # Solve the optimization problem
+    # ------------------------------
+    solve FO1;
+    printf "\nErro no calculo da corrente: %4.8f\n\n", 100*((power_loss_I2-power_loss)/power_loss);
+    # ----------------------------------
+    # Passo 2: Atualiza as Tensões Estimadas
+    # ----------------------------------
+    for{t in T, y in Y, s in S} {
+        # Reseta a tensão na raiz (subestação)
+        let V2est[SE,y,s,t] := vb^2;  # Mantém a tensão fixa na raiz
+        for {n in N}{
+            # Calcula a nova tensão usando corrente otimizada (I2) e impedância
+            # let V2est[n,y,s,t] := V2est[m,y,s,t] + Z2[l,m,n] * (P[l,m,n,y,s,t]^2 + Q[l,m,n,y,s,t]^2)/V2est_prev[n,y,s,t];
+            let V2est[n,y,s,t] := V2[n,y,s,t];
+            # Aplica relaxação (suaviza a atualização)
+            let V2est[n,y,s,t] := relaxation_factor * V2est[n,y,s,t] + (1 - relaxation_factor) * V2est_prev[n,y,s,t];
+            }
+    }
+    # ----------------------------------
+    # Passo 3: Verifica Convergência
+    # ----------------------------------
+    if max{n in N, t in T, y in Y, s in S} abs(V2est[n,y,s,t] - V2est_prev[n,y,s,t]) < tolerance then {
+        printf "\n\nConvergencia atingida na iteracao %d\n", iter;
+        break;
+    }
+}
+
+# infisibility diagnosis
+if solve_result = "infeasible" then {
+    print "";
+    print "==================================================";
+    print "   IRREDUCIBLE INCONSISTENT SUBSYSTEM (IIS) FOUND ";
+    print "==================================================";
+    print "";
+    
+    print "--- CONFLICTING CONSTRAINTS ---";
+    # Iterate through all constraints
+    for {a in 1.._ncons} {
+        if _con[a].iis != 0 then {
+            # If IIS status is different from 0 (non-zero), show the name
+            printf "Conflict in Constraint: %s (Status: %d)\n", _conname[a], _con[a].iis;
+        }
+    }
+    
+    print "";
+    print "--- VARIABLES WITH CONFLICTING BOUNDS ---";
+    # Iterate through all variables
+    for {j in 1.._nvars} {
+        if _var[j].iis != 0 then {
+            # If IIS status is different from 0, show the name
+            printf "Problem with Variable: %s (Status: %d)\n", _varname[j], _var[j].iis;
+        }
+    }
+    print "==================================================";
+}
+
+print "--- BOUND VIOLATION DIAGNOSIS ---";
+
+# Check LOWER bound violations (Var < Lower Bound - 0.001)
+for {j in 1.._nvars} {
+    if _var[j] < _var[j].lb - 0.001 then {
+        printf "MIN VIOLATION: %s = %f (Minimum was %f)\n", _varname[j], _var[j], _var[j].lb;
+    }
+}
+
+# Check UPPER bound violations (Var > Upper Bound + 0.001)
+for {j in 1.._nvars} {
+    if _var[j] > _var[j].ub + 0.001 then {
+        printf "MAX VIOLATION: %s = %f (Maximum was %f)\n", _varname[j], _var[j], _var[j].ub;
+    }
+}
+
+display investment, Ener_SE, Ener_PD, Supre_power;
+
+printf "Y,S,T,Pg,Qg\n" > ("results\Substation_WithoutAllocation_.csv");
+for {y in Y} {
+    for {s in S} {
+        for {t in T} {
+            printf "%d,%d,%d,%5.4f,%5.4f\n", 
+                y, s, t, Pg[SE,y,s,t], Qg[SE,y,s,t] >> ("results\Substation_WithoutAllocation_.csv");
+        }
+    }
+}
+
+# printf "\n\nVoltages";
+# for {y in Y, s in S, n in N}{
+#     printf'\n%d:', n;
+#     for {t in T}{printf '\t%2.4f', sqrt(V2est[n,y,s,t])/vb;}
+# }
+# printf "\n\n";
+
+# printf "\n\nCurrents";
+# for {y in Y, s in S, (l,m,n) in L}{
+#     printf'\n%d:', l;
+#     for {t in T}{printf '\t%4.2f', sqrt(I2[l,m,n,y,s,t]);}
+# }
+# printf "\n\n";
+
+# printf "\n\n max Currents";
+# for {y in Y, s in S, (l,m,n) in L}{
+#     printf'\n%d:', l;
+#     printf '\t%4.2f', max {t in T} sqrt(I2[l,m,n,y,s,t])/r3;
+# }
+# printf "\n\n";
+
+# printf "Maximum aparent power at Substation:\n";
+# for {y in Y} {
+#     for {s in S} {
+#         printf " %8.4f", max {t in T} sqrt(Pg[SE,y,s,t]^2 + Qg[SE,y,s,t]^2);
+#     }
+# }
+
+printf "\n\n";
+display Ener_PD, Ener_SE,power_loss_I2;
+printf "\n\nTotal CPU time:%10.2fs\n\n", _ampl_time + _total_solve_time + _total_shell_time;
