@@ -141,16 +141,14 @@ var pv_installation_cost_total = sum {n in N} (PV_allocation[n] * pv_installatio
 # total investment
 var investment = investment_capacitors + investment_battery;
 
-subject to total_investment {n in N}:
-    investment <= 200e3;
+subject to total_investment: investment <= 200e3;
 
 var investment_pv {N} >=0;
 
+subject to investment_pv_limit {n in N}: investment_pv[n] <= 20e3;
+
 subject to investment_pv_def {n in N}:
     investment_pv[n] = PV_panels[n] * pv_panel_cost + PV_inverter[n] * pv_inverter_cost + PV_allocation[n] * pv_installation_cost;
-
-subject to investment_pv_limit {n in N}:
-    investment_pv[n] <= 20e3;
 
 # # liquid present value of the PV investment.
 # subject to lpv_a {n in N}:
@@ -172,8 +170,6 @@ minimize FO2 : liquid_tariff;
 minimize FO3 : investment + cost_p_loss_I2 + liquid_tariff;
 
 /* DISTRIBUTION SYSTEM RESTRICTIONS */
-subject to investment_limit: investment <= 200e3;
-
 subject to substation_1 {d in D, s in S, t in T}:
     Pg[SE,s,d,t] <= S_max * 0.8;
 
