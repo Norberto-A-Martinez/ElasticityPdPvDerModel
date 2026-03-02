@@ -26,8 +26,9 @@ param tag; # usado para controlar qual modelo para o calculo da corrente utiliza
 param d_Y {Y} ; # length of each year in days
 param delt_t := 1; # duration of period t in hours
 param prob_S {S}; # probability of occurrence of scenario
+param prob_D {D}; # probability of occurrence of scenario
 # current linearization calculation
-param V2est {N,Y,S,T}; # estimated voltage squared at each node
+param V2est {N,S,D,T}; # estimated voltage squared at each node
 param mS {W}; # coefficient for the current linearization
 param WS; # maximum value for the current linearization
 param vb; # nominal voltage magnitude
@@ -39,7 +40,9 @@ param Qd_0 {N}; # Initial reactive power demand
 param S_max := 8e3; # maximum apparent power of the substation
 param Sd_0 {N}; # initial active power demand
 param pf {N}; # power factor at each node
-param de_curve {T,C}; # load curve
+param de_curve_type {T,C}; # load curve
+param de_curve_scenarios {T,D}; # load curve
+param de_curve {N,T,D}; # load curve
 param Smax {L}; # maximum apparent power in the circuit ij
 param R {L}; # resistance in the circuit ij
 param X {L}; # reactance in the circuit ij
@@ -71,7 +74,8 @@ param cp_module_cost; # module cost
 param battery_instal_cost; # instalation cost
 param capacitor_instal_cost; # instalation cost
 param cp_Max; # maximum number of modules in the node
-param cus_ene {T}; # energy cost
+param ET {T}; # energy tariff
+param SUT {T}; # system usage tariff
 param theta_pf; # PV inverter power factor
 param pv_panel_capacity ; # PV panel capacity kwp
 param pv_inverter_capacity ; # PV inverter capacity kw
@@ -83,45 +87,42 @@ param Qd {N}; # reactive power demand
 param PV_0 {N}; # initial PV generation at each node
 
 # EDS variables
-var Pg {N,Y,S,T}; # potência ativa fornecida pela subestação no nó i
-var Qg {N,Y,S,T}; # potência reativa fornecida pela subestação no nó i
-var Qcp {N,Y,S} >= 0; # potência reativa do capacitor no nó i
-var V2 {N,Y,S,T} >= 0; # variável que representa o quadrado de V[i]
-var I2 {L,Y,S,T} >= 0; # variável que representa o quadrado de I[i,j]
-var P {L,Y,S,T}; # fluxo de potência ativa no circuito ij
-var Q {L,Y,S,T}; # fluxo de potência ativa no circuito ij
+var Pg {N,S,D,T}; # potência ativa fornecida pela subestação no nó i
+var Qg {N,S,D,T}; # potência reativa fornecida pela subestação no nó i
+var Qcp {N,S} >= 0; # potência reativa do capacitor no nó i
+var V2 {N,S,D,T} >= 0; # variável que representa o quadrado de V[i]
+var I2 {L,S,D,T} >= 0; # variável que representa o quadrado de I[i,j]
+var P {L,S,D,T}; # fluxo de potência ativa no circuito ij
+var Q {L,S,D,T}; # fluxo de potência ativa no circuito ij
 var capacitor_allocation {N} binary; # variable that indicates if the node n allocation
 var battery_allocation {N} binary; # variable that indicates if the node n allocation
 var cp_modules {N} integer >= 0; # number of capacitor modules
 var bat_inverters {N} integer; # number of battery inverters
-var cp_operation {N,Y,S} integer >= 0; # number of active capacitor modules
-var bat_opt {N,Y,S,T} binary; # battery operation - avoid simultaneous charge and discharge
-var EoC_ini {N,Y,S} >= 0; # battery initial state of charge
-var bat_disch {N,Y,S,T} >= 0; # battery charging power
-var bat_charg {N,Y,S,T} >= 0; # battery discharging power
-var EoC {N,Y,S,T} >= 0; # battery state of charge
+var cp_operation {N,S} integer >= 0; # number of active capacitor modules
+var bat_opt {N,S,D,T} binary; # battery operation - avoid simultaneous charge and discharge
+var EoC_ini {N,S} >= 0; # battery initial state of charge
+var bat_disch {N,S,D,T} >= 0; # battery charging power
+var bat_charg {N,S,D,T} >= 0; # battery discharging power
+var EoC {N,S,D,T} >= 0; # battery state of charge
 var PV_allocation {N} binary; # variable that indicates if the node n allocation
 var PV_inverter {N} integer >= 0;
 var PV_panels {N} integer >= 0;
-var PV_gen {N,Y,S,T} >= 0; # PV generation at each node
-var PV_cut {N,Y,S,T} >= 0; # PV curtailed power at each node
-var qPV_gen {N,Y,S,T}; # potência reativa fornecida pela geração distribuída no nó i
-var Pp {L,Y,S,T} >= 0; # positive part of the active power flow
-var Pn {L,Y,S,T} >= 0; # negative part of the active power flow
-var Qp {L,Y,S,T} >= 0; # positive part of the reactive power flow
-var Qn {L,Y,S,T} >= 0; # negative part of the reactive power flow
-var Dp {L,Y,S,T,W} >= 0; # linearization variable for the active power flow
-var Dq {L,Y,S,T,W} >= 0; # linearization variable for the reactive power flow
-var Sd_S_influence {N,Y} >= 0; # power demand considering spatial influence
-var Sd_Temp_grow {N,Y} >= 0; # variable that indicates the teporal grow of Pd
-var Sd_supr {N,Y} >= 0; # variable that indicates the power demand suppressed
+var PV_gen {N,S,T} >= 0; # PV generation at each node
+var PV_cut {N,S,T} >= 0; # PV curtailed power at each node
+var qPV_gen {N,S,T}; # potência reativa fornecida pela geração distribuída no nó i
+var Pp {L,S,D,T} >= 0; # positive part of the active power flow
+var Pn {L,S,D,T} >= 0; # negative part of the active power flow
+var Qp {L,S,D,T} >= 0; # positive part of the reactive power flow
+var Qn {L,S,D,T} >= 0; # negative part of the reactive power flow
+var Dp {L,S,D,T,W} >= 0; # linearization variable for the active power flow
+var Dq {L,S,D,T,W} >= 0; # linearization variable for the reactive power flow
 
 # OBJECTIVE FUNCTION
 # social vulnerability index pre-calculated in pros_data.dat
 
-var power_loss_I2 = sum {s in S} (prob_S[s]*sum {(l,m,n) in L, y in Y, t in T} I2[l,m,n,y,s,t]*R[l,m,n]);
+var power_loss_I2 = sum {(l,m,n) in L,  t in T, s in S, d in D} prob_D[d] * prob_S[s] * I2[l,m,n,s,d,t] * R[l,m,n];
+var cost_p_loss_I2 = sum {(l,m,n) in L,  t in T, s in S, d in D} prob_D[d] * prob_S[s] * I2[l,m,n,s,d,t] * R[l,m,n]*(ET[t] + SUT[t]);
 
-minimize FO1 : power_loss_I2;
 
 # capacitor costs
 var investment_capacitors_modules = sum {n in N} (cp_modules[n] * cp_module_cost * cp_size);
@@ -136,83 +137,113 @@ var investment_battery = investment_battery_modules + investment_battery_inverte
 var pv_panel_cost_total = sum {n in N} (PV_panels[n] * pv_panel_cost);
 var pv_inverter_cost_total = sum {n in N} (PV_inverter[n] * pv_inverter_cost);
 var pv_installation_cost_total = sum {n in N} (PV_allocation[n] * pv_installation_cost);
-var investment_pv = pv_panel_cost_total + pv_inverter_cost_total + pv_installation_cost_total;
+
 # total investment
-var investment = investment_capacitors + investment_battery + investment_pv;
+var investment = investment_capacitors + investment_battery;
+
+subject to total_investment {n in N}:
+    investment <= 200e3;
+
+var investment_pv {N} >=0;
+
+subject to investment_pv_def {n in N}:
+    investment_pv[n] = PV_panels[n] * pv_panel_cost + PV_inverter[n] * pv_inverter_cost + PV_allocation[n] * pv_installation_cost;
+
+subject to investment_pv_limit {n in N}:
+    investment_pv[n] <= 20e3;
+
+# # liquid present value of the PV investment.
+# subject to lpv_a {n in N}:
+#     0 <= investment_pv[n]/sum {t in T, s in S, d in D}(Pd[n]*de_curve[n,t,d] - PV_gen[n,s,t])/(1 + 0.4)^30;
+
+# subject to lpv_b {n in N}:
+#     investment_pv[n]/sum {t in T, s in S, d in D}(Pd[n]*de_curve[n,t,d] - PV_gen[n,s,t])/(1 + 0.4)^30 <= 5;
+
+var P_inj {N,S,D,T} >= 0;
+var P_cons {N,S,D,T} >= 0;
+
+subject to liquid_power {n in N, s in S, d in D, t in T}:
+    P_inj[n,s,d,t] - P_cons[n,s,d,t] = PV_gen[n,s,t] - Pd[n]*de_curve[n,t,d];
+
+var liquid_tariff = sum {n in N, s in S, d in D, t in T} (ET[t]*(P_inj[n,s,d,t] - P_cons[n,s,d,t]) - SUT[t]*(0.9*P_inj[n,s,d,t] + P_cons[n,s,d,t]));
+
+minimize FO1 : investment + cost_p_loss_I2;
+minimize FO2 : liquid_tariff;
+minimize FO3 : investment + cost_p_loss_I2 + liquid_tariff;
 
 /* DISTRIBUTION SYSTEM RESTRICTIONS */
 subject to investment_limit: investment <= 200e3;
 
-subject to substation_1 {y in Y, s in S, t in T}:
-    Pg[SE,y,s,t] <= S_max * 0.8;
+subject to substation_1 {d in D, s in S, t in T}:
+    Pg[SE,s,d,t] <= S_max * 0.8;
 
-subject to substation_2a {y in Y, s in S, t in T}:
-    -S_max <= Qg[SE,y,s,t];
+subject to substation_2a {d in D, s in S, t in T}:
+    -S_max <= Qg[SE,s,d,t];
 
-subject to substation_2b {y in Y, s in S, t in T}:
-    Qg[SE,y,s,t] <= S_max;
+subject to substation_2b {d in D, s in S, t in T}:
+    Qg[SE,s,d,t] <= S_max;
 
-subject to substation_3a {y in Y, s in S, t in T}:
-    Qg[SE,y,s,t] <= sqrt(2)*S_max - Pg[SE,y,s,t];
+subject to substation_3a {d in D, s in S, t in T}:
+    Qg[SE,s,d,t] <= sqrt(2)*S_max - Pg[SE,s,d,t];
 
-subject to substation_3b {y in Y, s in S, t in T}:
-    -sqrt(2)*S_max + Pg[SE,y,s,t] <= Qg[SE,y,s,t];
+subject to substation_3b {d in D, s in S, t in T}:
+    -sqrt(2)*S_max + Pg[SE,s,d,t] <= Qg[SE,s,d,t];
 
 
-subject to balanco_potencia_ativa {n in N, y in Y, t in T,s in S}:
-    sum {(l,m,n) in L} P[l,m,n,y,s,t] 
-    - sum {(l,n,m) in L} (P[l,n,m,y,s,t] + I2[l,n,m,y,s,t]*R[l,n,m]) 
-    - bat_charg[n,y,s,t] + bat_disch[n,y,s,t] 
-    + PV_gen[n,y,s,t] 
-    + Pg[n,y,s,t] = Pd[n]*de_curve[t,region[n]];
+subject to balanco_potencia_ativa {n in N, t in T, s in S, d in D}:
+    sum {(l,m,n) in L} P[l,m,n,s,d,t] 
+    - sum {(l,n,m) in L} (P[l,n,m,s,d,t] + I2[l,n,m,s,d,t]*R[l,n,m]) 
+    - bat_charg[n,s,d,t] + bat_disch[n,s,d,t] 
+    + PV_gen[n,s,t] 
+    + Pg[n,s,d,t] = Pd[n]*de_curve[n,t,d];
 
-subject to balanco_potencia_reativa {n in N, y in Y, t in T,s in S}:
-    sum {(l,m,n) in L} Q[l,m,n,y,s,t] 
-    - sum {(l,n,m) in L} (Q[l,n,m,y,s,t] + I2[l,n,m,y,s,t]*X[l,n,m]) 
-    + qPV_gen[n,y,s,t]
-    + Qcp[n,y,s] + Qg[n,y,s,t] = Qd[n]*de_curve[t,region[n]];
+subject to balanco_potencia_reativa {n in N,  t in T,s in S, d in D}:
+    sum {(l,m,n) in L} Q[l,m,n,s,d,t] 
+    - sum {(l,n,m) in L} (Q[l,n,m,s,d,t] + I2[l,n,m,s,d,t]*X[l,n,m]) 
+    + qPV_gen[n,s,t]
+    + Qcp[n,s] + Qg[n,s,d,t] = Qd[n]*de_curve[n,t,d];
 
-subject to queda_magnitude_tensao {(l,m,n) in L, y in Y, t in T,s in S}:
-    V2[m,y,s,t] - V2[n,y,s,t] = 2*(P[l,m,n,y,s,t] * R[l,m,n] + Q[l,m,n,y,s,t] * X[l,m,n]) + I2[l,m,n,y,s,t] * Z2[l,m,n];
+subject to queda_magnitude_tensao {(l,m,n) in L,  t in T,s in S, d in D}:
+    V2[m,s,d,t] - V2[n,s,d,t] = 2*(P[l,m,n,s,d,t] * R[l,m,n] + Q[l,m,n,s,d,t] * X[l,m,n]) + I2[l,m,n,s,d,t] * Z2[l,m,n];
 
-subject to calculo_magnitude_corrente_conico {(l,m,n) in L, y in Y, t in T, s in S: tag == 2}:
-    V2[n,y,s,t] * I2[l,m,n,y,s,t] >= P[l,m,n,y,s,t]^2 + Q[l,m,n,y,s,t]^2;
+subject to calculo_magnitude_corrente_conico {(l,m,n) in L,  t in T, s in S, d in D: tag == 2}:
+    V2[n,s,d,t] * I2[l,m,n,s,d,t] >= P[l,m,n,s,d,t]^2 + Q[l,m,n,s,d,t]^2;
 
-subject to calculo_magnitude_corrente_nl {(l,m,n) in L, y in Y, t in T, s in S: tag == 1}:
-    V2[n,y,s,t] * I2[l,m,n,y,s,t] = P[l,m,n,y,s,t]^2 + Q[l,m,n,y,s,t]^2;
+subject to calculo_magnitude_corrente_nl {(l,m,n) in L,  t in T, s in S, d in D: tag == 1}:
+    V2[n,s,d,t] * I2[l,m,n,s,d,t] = P[l,m,n,s,d,t]^2 + Q[l,m,n,s,d,t]^2;
 
-subject to CURRENT_FLOW_SQUARE{(l,m,n) in L, y in Y, t in T, s in S: tag == 0} :
-    V2est[n,y,s,t] * I2[l,m,n,y,s,t] = sum{w in W} mS[w] * (Dp[l,m,n,y,s,t,w] + Dq[l,m,n,y,s,t,w]);
+subject to CURRENT_FLOW_SQUARE{(l,m,n) in L,  t in T, s in S, d in D: tag == 0} :
+    V2est[n,s,d,t] * I2[l,m,n,s,d,t] = sum{w in W} mS[w] * (Dp[l,m,n,s,d,t,w] + Dq[l,m,n,s,d,t,w]);
     
-subject to WELTA_CURRENT_FLOW_re{(l,m,n) in L, y in Y, t in T, s in S: tag == 0} :
-    Pp[l,m,n,y,s,t] + Pn[l,m,n,y,s,t] = sum{w in W} Dp[l,m,n,y,s,t,w];
+subject to WELTA_CURRENT_FLOW_re{(l,m,n) in L,  t in T, s in S, d in D: tag == 0} :
+    Pp[l,m,n,s,d,t] + Pn[l,m,n,s,d,t] = sum{w in W} Dp[l,m,n,s,d,t,w];
 
-subject to WELTA_CURRENT_FLOW_im{(l,m,n) in L, y in Y, t in T, s in S: tag == 0} :
-    Qp[l,m,n,y,s,t] + Qn[l,m,n,y,s,t] = sum{w in W} Dq[l,m,n,y,s,t,w];
+subject to WELTA_CURRENT_FLOW_im{(l,m,n) in L,  t in T, s in S, d in D: tag == 0} :
+    Qp[l,m,n,s,d,t] + Qn[l,m,n,s,d,t] = sum{w in W} Dq[l,m,n,s,d,t,w];
 
-subject to WELTA_CURRENT_FLOW_re_soma{(l,m,n) in L, y in Y, t in T, s in S: tag == 0} :
-    P[l,m,n,y,s,t] = Pp[l,m,n,y,s,t] - Pn[l,m,n,y,s,t];
+subject to WELTA_CURRENT_FLOW_re_soma{(l,m,n) in L,  t in T, s in S, d in D: tag == 0} :
+    P[l,m,n,s,d,t] = Pp[l,m,n,s,d,t] - Pn[l,m,n,s,d,t];
 
-subject to WELTA_CURRENT_FLOW_im_soma{(l,m,n) in L, y in Y, t in T, s in S: tag == 0} :
-    Q[l,m,n,y,s,t] = Qp[l,m,n,y,s,t] - Qn[l,m,n,y,s,t];
+subject to WELTA_CURRENT_FLOW_im_soma{(l,m,n) in L,  t in T, s in S, d in D: tag == 0} :
+    Q[l,m,n,s,d,t] = Qp[l,m,n,s,d,t] - Qn[l,m,n,s,d,t];
 
-subject to MAXIMUN_WELTA_CURRENT_FLOW_re {(l,m,n) in L, y in Y, w in W, t in T, s in S: tag == 0}:
-    Dp[l,m,n,y,s,t,w] <= WS;
+subject to MAXIMUN_WELTA_CURRENT_FLOW_re {(l,m,n) in L,  w in W, t in T, s in S, d in D: tag == 0}:
+    Dp[l,m,n,s,d,t,w] <= WS;
 
-subject to MAXIMUN_WELTA_CURRENT_FLOW_im {(l,m,n) in L, y in Y, w in W, t in T, s in S: tag == 0}:
-    Dq[l,m,n,y,s,t,w] <= WS;
+subject to MAXIMUN_WELTA_CURRENT_FLOW_im {(l,m,n) in L,  w in W, t in T, s in S, d in D: tag == 0}:
+    Dq[l,m,n,s,d,t,w] <= WS;
 
-# current limit
-subject to corrente {(l,m,n) in L, y in Y, t in T,s in S}:
-    -Imax[l,m,n]^2 <= I2[l,m,n,y,s,t] <= Imax[l,m,n]^2;
+# # current limit
+# subject to corrente {(l,m,n) in L,  t in T,s in S, d in D}:
+#     -Imax[l,m,n]^2 <= I2[l,m,n,s,d,t] <= Imax[l,m,n]^2;
 
-# upper voltage limit
-subject to tens_max {n in N, y in Y, t in T,s in S}:
-    V2[n,y,s,t] <= (vmax*vb)^2;
+# # upper voltage limit
+# subject to tens_max {n in N,  t in T,s in S, d in D}:
+#     V2[n,s,d,t] <= (vmax*vb)^2;
 
-# lower voltage limit
-subject to tens_min {n in N, y in Y, t in T,s in S}:
-    V2[n,y,s,t] >= (vmin*vb)^2;
+# # lower voltage limit
+# subject to tens_min {n in N,  t in T,s in S, d in D}:
+#     V2[n,s,d,t] >= (vmin*vb)^2;
 
 # capacitors
 subject to CapacitorAllocation {n in N}:
@@ -221,11 +252,11 @@ subject to CapacitorAllocation {n in N}:
 subject to capacitor_modules_decision {n in N}:
     cp_modules[n] <= M*capacitor_allocation[n];
 
-subject to capacitor_operation_decision {n in N, y in Y, s in S}:
-    cp_operation[n,y,s] <= cp_modules[n];
+subject to capacitor_operation_decision {n in N,  s in S}:
+    cp_operation[n,s] <= cp_modules[n];
 
-subject to reactive_power_delivered {n in N, y in Y, s in S}:
-    Qcp[n,y,s] = cp_size*cp_operation[n,y,s];
+subject to reactive_power_delivered {n in N,  s in S}:
+    Qcp[n,s] = cp_size*cp_operation[n,s];
 
 # batteries
 subject to BatteryAllocation {n in N}:
@@ -234,32 +265,32 @@ subject to BatteryAllocation {n in N}:
 subject to eq_15a {n in N}:
     bat_inverters[n] <= M*battery_allocation[n];
 
-subject to BatteryOpt_charg {n in N, y in Y, s in S, t in T}:
-    bat_charg[n,y,s,t] <= M*bat_inverter_capacity*(1 - bat_opt[n,y,s,t]);
+subject to BatteryOpt_charg {n in N,  s in S, t in T, d in D}:
+    bat_charg[n,s,d,t] <= M*bat_inverter_capacity*(1 - bat_opt[n,s,d,t]);
 
-subject to BatteryOpt_disch {n in N, y in Y, s in S, t in T}:
-    bat_disch[n,y,s,t] <= M*bat_inverter_capacity*bat_opt[n,y,s,t];
+subject to BatteryOpt_disch {n in N,  s in S, t in T, d in D}:
+    bat_disch[n,s,d,t] <= M*bat_inverter_capacity*bat_opt[n,s,d,t];
 
-subject to eq_23 {n in N, y in Y, s in S, t in T}:
-    bat_charg[n,y,s,t] <= bat_inverter_capacity*bat_inverters[n];
+subject to eq_23 {n in N,  s in S, t in T, d in D}:
+    bat_charg[n,s,d,t] <= bat_inverter_capacity*bat_inverters[n];
 
-subject to eq_24 {n in N, y in Y, s in S, t in T}:
-    bat_disch[n,y,s,t] <= bat_inverter_capacity*bat_inverters[n];
+subject to eq_24 {n in N,  s in S, t in T, d in D}:
+    bat_disch[n,s,d,t] <= bat_inverter_capacity*bat_inverters[n];
 
-subject to eq_25 {n in N, y in Y, s in S, t in T, b in B: t == 1}:
-    EoC[n,y,s,t] - EoC_ini[n,y,s] = delt_t*(Rtef[b]*bat_charg[n,y,s,t] - (1/Rtef[b])*bat_disch[n,y,s,t]) - (beta[b]/card(T))*EoC[n,y,s,t];
+subject to eq_25 {n in N,  s in S, t in T, d in D, b in B: t == 1}:
+    EoC[n,s,d,t] - EoC_ini[n,s] = delt_t*(Rtef[b]*bat_charg[n,s,d,t] - (1/Rtef[b])*bat_disch[n,s,d,t]) - (beta[b]/card(T))*EoC[n,s,d,t];
 
-subject to estado_de_carga {n in N, y in Y, s in S, t in T, b in B: t > 1}:
-    EoC[n,y,s,t] - EoC[n,y,s,t-1] = delt_t*(Rtef[b]*bat_charg[n,y,s,t] - (1/Rtef[b])*bat_disch[n,y,s,t]) - (beta[b]/card(T))*EoC[n,y,s,t];
+subject to estado_de_carga {n in N,  s in S, t in T, d in D, b in B: t > 1}:
+    EoC[n,s,d,t] - EoC[n,s,d,t-1] = delt_t*(Rtef[b]*bat_charg[n,s,d,t] - (1/Rtef[b])*bat_disch[n,s,d,t]) - (beta[b]/card(T))*EoC[n,s,d,t];
 
-subject to initial_sttate {n in N, y in Y, s in S}:
-    EoC_ini[n,y,s] = EoC[n,y,s,last(T)];
+subject to initial_sttate {n in N, d in D, s in S}:
+    EoC_ini[n,s] = EoC[n,s,d,last(T)];
 
-subject to max_energia {n in N, y in Y, s in S, t in T, b in B}:
-    EoC[n,y,s,t] <= bat_module_capacity * DoD[b] * bat_inverters[n];
+subject to max_energia {n in N,  s in S, t in T, d in D, b in B}:
+    EoC[n,s,d,t] <= bat_module_capacity * DoD[b] * bat_inverters[n];
 
-subject to min_energia {n in N, y in Y, s in S, t in T, b in B}:
-    EoC[n,y,s,t] >= bat_module_capacity * (1-DoD[b]) * bat_inverters[n];
+subject to min_energia {n in N,  s in S, t in T, d in D, b in B}:
+    EoC[n,s,d,t] >= bat_module_capacity * (1-DoD[b]) * bat_inverters[n];
 
 # PV SYSTEM allocation
 subject to PV_panels_allocation {n in N}:
@@ -268,34 +299,31 @@ subject to PV_panels_allocation {n in N}:
 subject to pv_inverter_allocation {n in N}:
     PV_inverter[n] <= 10*PV_allocation[n];
 
-subject to panels_generation {n in N, y in Y, s in S, t in T}:
-    PV_gen[n,y,s,t] = min (PV_panels[n] * pv_panel_capacity * irrad[t,s], PV_inverter[n] * pv_inverter_capacity);
+subject to panels_generation {n in N, s in S, t in T}:
+    PV_gen[n,s,t] = min (PV_panels[n] * pv_panel_capacity * irrad[t,s], PV_inverter[n] * pv_inverter_capacity);
 
-# subject to PV_inverter_capacity {n in N, y in Y, s in S, t in T}:
-#     PV_cut[n,y,s,t] <= PV_inverter[n] * pv_inverter_capacity;
+# subject to PV_inverter_capacity {n in N,  s in S, t in T}:
+#     PV_cut[n,s,t] <= PV_inverter[n] * pv_inverter_capacity;
 
-subject to GD_reactive_1 {n in N, y in Y, s in S, t in T}:
-    - PV_gen[n,y,s,t] * tan(acos(theta_pf)) <= qPV_gen[n,y,s,t];
+subject to GD_reactive_1 {n in N, s in S, t in T}:
+    - PV_gen[n,s,t] * tan(acos(theta_pf)) <= qPV_gen[n,s,t];
 
-subject to GD_reactive_2 {n in N, y in Y, s in S, t in T}:
-    qPV_gen[n,y,s,t] <= PV_gen[n,y,s,t] * tan(acos(theta_pf));
+subject to GD_reactive_2 {n in N,  s in S, t in T}:
+    qPV_gen[n,s,t] <= PV_gen[n,s,t] * tan(acos(theta_pf));
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\
 #  PERFORMANCE INDICATORS
 # \\\\\\\\\\\\\\\\\\\\\\\\
 
-# Expected energy consumed
-var Ener_PD = sum {n in N, y in Y, t in T, s in S, c in C} (d_Y[y]* delt_t * prob_S[s] * Pd[n]*de_curve[t,region[n]]);
+# # Expected energy consumed
+# var Ener_PD = sum {n in N, t in T, s in S, c in C} (delt_t * prob_S[s] * Pd[n]*de_curve[t,n]);
 
-# Pondered consumed energy
-var Ener_PD_ponderada = sum {n in N, y in Y, t in T, s in S, c in C} ((d_Y[y]* delt_t * prob_S[s] * Pd[n] * de_curve[t,region[n]])/(Pd_0[n]+ 1e-6));
+# # Pondered consumed energy
+# var Ener_PD_ponderada = sum {n in N, t in T, s in S, d in D, c in C} ((delt_t * prob_S[s] * Pd[n] * de_curve[t,n])/(Pd_0[n]+ 1e-6));
 
 # Expected energy supplied by the substation
-var Ener_SE = sum {n in N, y in Y, t in T, s in S} (d_Y[y] * delt_t * prob_S[s] * Pg[n,y,s,t]);
+var Ener_SE = sum {n in N, t in T, s in S, d in D} (delt_t * prob_S[s] * prob_D[d] * Pg[n,s,d,t]);
 
 # Power loss in the system
-var power_loss = sum {s in S} (prob_S[s]*sum {(l,m,n) in L, y in Y, t in T} (R[l,m,n]*((P[l,m,n,y,s,t]^2 + Q[l,m,n,y,s,t]^2)/V2[n,y,s,t])));
-
-# suppressed power
-var Supre_power = sum {n in N, y in Y, t in T} d_Y[y] * delt_t * Sd_supr[n,y];
+var power_loss = sum {(l,m,n) in L, t in T, s in S, d in D} (prob_D[d] * prob_S[s] * R[l,m,n]*(P[l,m,n,s,d,t]^2 + Q[l,m,n,s,d,t]^2)/V2[n,s,d,t]);

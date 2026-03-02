@@ -8,30 +8,30 @@ for {(l,n,m) in L} {
 }
 
 # Iniciate voltage for the nodes that are not the substation
-for{n in N, y in Y, t in T, s in S:n != SE} {
-  let V2[n,y,s,t] := vb^2;
+for{n in N, t in T, d in D, s in S:n != SE} {
+  let V2[n,s,d,t] := vb^2;
   # for the linearization of the current
-  let V2est[n,y,s,t] := vb^2;
+  let V2est[n,s,d,t] := vb^2;
 }
 
 # fixing variables related to the substation
-for{n in N, y in Y, t in T, s in S: n = SE} {
-  fix V2[n,y,s,t] := vb^2;
-  let V2est[n,y,s,t] := vb^2;
+for{n in N, t in T, d in D, s in S: n = SE} {
+  fix V2[n,s,d,t] := vb^2;
+  let V2est[n,s,d,t] := vb^2;
   # no allocatte capacitor in the substation
   fix battery_allocation[n] := 0;
   fix capacitor_allocation[n] := 0;
 }
 
 # fixar a injeção de potência ativa e reativa nos nós de carga iguais a zero
-for{n in N, y in Y, t in T, s in S: n != SE} {
-  fix Pg[n,y,s,t] := 0;
-  fix Qg[n,y,s,t] := 0;
+for{n in N, t in T, d in D, s in S: n != SE} {
+  fix Pg[n,s,d,t] := 0;
+  fix Qg[n,s,d,t] := 0;
 }
 
 # Garantir que só os nós da subestação geram potência ativa e reativa
-unfix {y in Y, t in T, s in S} Pg[SE,y,s,t];
-unfix {y in Y, t in T, s in S} Qg[SE,y,s,t];
+unfix {t in T, d in D, s in S} Pg[SE,s,d,t];
+unfix {t in T, d in D, s in S} Qg[SE,s,d,t];
 
 for {(l,n,m) in L} let WS := Smax[l,n,m]/Wmax ;
 for {w in W} let mS[w] := (2*w - 1)*WS;
@@ -47,3 +47,15 @@ for {b in B}{
   let Rtef[b] := Rtef[b]/100;
   let beta[b] := beta[b]/100;
 };
+
+# recalculation and normalization of the load curve
+for {t in T, n in N, c in C, d in D}{
+    let de_curve[n,t,d] := de_curve_type[t,region[n]]*de_curve_scenarios[t,d];
+}
+
+param curve_max := max {t in T, n in N, d in D} de_curve[n,t,d];
+param curve_min := min {t in T, n in N, d in D} de_curve[n,t,d];
+
+for {t in T, n in N, d in D}{
+    let de_curve[n,t,d] := (de_curve[n,t,d] - curve_min)/(curve_max - curve_min);
+}
