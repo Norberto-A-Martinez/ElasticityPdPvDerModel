@@ -141,11 +141,11 @@ var pv_installation_cost_total = sum {n in N} (PV_allocation[n] * pv_installatio
 # total investment
 var investment = investment_capacitors + investment_battery;
 
-subject to total_investment: investment <= 200e3;
+subject to total_investment: investment <= 500e3;
 
 var investment_pv {N} >=0;
 
-subject to investment_pv_limit {n in N}: investment_pv[n] <= 20e3;
+subject to investment_pv_limit {n in N}: investment_pv[n] <= 50e3;
 
 subject to investment_pv_def {n in N}:
     investment_pv[n] = PV_panels[n] * pv_panel_cost + PV_inverter[n] * pv_inverter_cost + PV_allocation[n] * pv_installation_cost;
@@ -163,11 +163,11 @@ var P_cons {N,S,D,T} >= 0;
 subject to liquid_power {n in N, s in S, d in D, t in T}:
     P_inj[n,s,d,t] - P_cons[n,s,d,t] = PV_gen[n,s,t] - Pd[n]*de_curve[n,t,d];
 
-var liquid_tariff = sum {n in N, s in S, d in D, t in T} (ET[t]*(P_inj[n,s,d,t] - P_cons[n,s,d,t]) - SUT[t]*(0.9*P_inj[n,s,d,t] + P_cons[n,s,d,t]));
+var liquid_tariff = sum {n in N, s in S, d in D, t in T} prob_S[s] * prob_D[d] * (ET[t]*(P_inj[n,s,d,t] - P_cons[n,s,d,t]) - SUT[t]*(0.9*P_inj[n,s,d,t] + P_cons[n,s,d,t]));
 
 minimize FO1 : investment + cost_p_loss_I2;
 minimize FO2 : liquid_tariff;
-minimize FO3 : investment + cost_p_loss_I2 + liquid_tariff;
+minimize FO3 : investment + cost_p_loss_I2 - liquid_tariff;
 
 /* DISTRIBUTION SYSTEM RESTRICTIONS */
 subject to substation_1 {d in D, s in S, t in T}:
@@ -184,7 +184,6 @@ subject to substation_3a {d in D, s in S, t in T}:
 
 subject to substation_3b {d in D, s in S, t in T}:
     -sqrt(2)*S_max + Pg[SE,s,d,t] <= Qg[SE,s,d,t];
-
 
 subject to balanco_potencia_ativa {n in N, t in T, s in S, d in D}:
     sum {(l,m,n) in L} P[l,m,n,s,d,t] 
@@ -229,17 +228,17 @@ subject to MAXIMUN_WELTA_CURRENT_FLOW_re {(l,m,n) in L,  w in W, t in T, s in S,
 subject to MAXIMUN_WELTA_CURRENT_FLOW_im {(l,m,n) in L,  w in W, t in T, s in S, d in D: tag == 0}:
     Dq[l,m,n,s,d,t,w] <= WS;
 
-# # current limit
-# subject to corrente {(l,m,n) in L,  t in T,s in S, d in D}:
-#     -Imax[l,m,n]^2 <= I2[l,m,n,s,d,t] <= Imax[l,m,n]^2;
+# current limit
+subject to corrente {(l,m,n) in L,  t in T,s in S, d in D}:
+    -Imax[l,m,n]^2 <= I2[l,m,n,s,d,t] <= Imax[l,m,n]^2;
 
-# # upper voltage limit
-# subject to tens_max {n in N,  t in T,s in S, d in D}:
-#     V2[n,s,d,t] <= (vmax*vb)^2;
+# upper voltage limit
+subject to tens_max {n in N,  t in T,s in S, d in D}:
+    V2[n,s,d,t] <= (vmax*vb)^2;
 
-# # lower voltage limit
-# subject to tens_min {n in N,  t in T,s in S, d in D}:
-#     V2[n,s,d,t] >= (vmin*vb)^2;
+# lower voltage limit
+subject to tens_min {n in N,  t in T,s in S, d in D}:
+    V2[n,s,d,t] >= (vmin*vb)^2;
 
 # capacitors
 subject to CapacitorAllocation {n in N}:
@@ -293,7 +292,7 @@ subject to PV_panels_allocation {n in N}:
     PV_panels[n] <= 80*PV_allocation[n];
 
 subject to pv_inverter_allocation {n in N}:
-    PV_inverter[n] <= 10*PV_allocation[n];
+    PV_inverter[n] <= 20*PV_allocation[n];
 
 subject to panels_generation {n in N, s in S, t in T}:
     PV_gen[n,s,t] = min (PV_panels[n] * pv_panel_capacity * irrad[t,s], PV_inverter[n] * pv_inverter_capacity);

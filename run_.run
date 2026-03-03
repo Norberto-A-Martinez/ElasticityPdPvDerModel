@@ -20,8 +20,8 @@ let tag := 0; # 0 linear / 2 conic
 # /*setting to solve without allocation*/
 #///////////////////////////////////////
 # fix {n in N} PV_allocation[n] := 0;
-fix {n in N} battery_allocation[n] := 0;
-fix {n in N} capacitor_allocation[n] := 0;
+# fix {n in N} battery_allocation[n] := 0;
+# fix {n in N} capacitor_allocation[n] := 0;
 
 # ----------------------------------
 # Passo 0: Inicialização
@@ -43,8 +43,8 @@ for{iter in 1..max_iter} {
     # ------------------------------
     # Solve the optimization problem
     # ------------------------------
-    solve FO1;
-    # printf "\nErro no calculo da corrente: %4.8f\n\n", 100*((power_loss_I2-power_loss)/power_loss);
+    solve FO3;
+    printf "\nErro no calculo da corrente: %4.8f\n", 100*((power_loss_I2-power_loss)/power_loss);
     # ----------------------------------
     # Passo 2: Atualiza as Tensões Estimadas
     # ----------------------------------
@@ -67,7 +67,7 @@ for{iter in 1..max_iter} {
         break;
     }
 }
-
+# display P_inj, P_cons;
 # infisibility diagnosis
 if solve_result = "infeasible" then {
     print "";
@@ -123,12 +123,13 @@ for {d in D} {
     }
 }
 
-# printf "\n\nVoltages";
-# for {d in D, s in S, n in N}{
-#     printf'\n%d:', n;
-#     for {t in T}{printf '\t%2.4f', sqrt(V2est[n,s,d,t])/vb;}
-# }
-# printf "\n\n";
+printf "n,s,d,V2est\n" > ("results\Voltage_WithoutAllocation_.csv");
+for {d in D, s in S, n in N}{
+    printf'\n%d,%d,%d,[', n, s, d > ("results\Voltage_WithoutAllocation_.csv");
+    for {t in T}{printf '%2.4f\t', sqrt(V2est[n,s,d,t])/vb > ("results\Voltage_WithoutAllocation_.csv");}
+    printf']\n' > ("results\Voltage_WithoutAllocation_.csv");
+}
+printf "\n\n";
 
 # printf "\n\nCurrents";
 # for {d in D, s in S, (l,m,n) in L}{
@@ -151,7 +152,14 @@ for {d in D} {
 #     }
 # }
 
+
 printf "\n\n";
 display liquid_tariff;
 display investment, Ener_SE, power_loss_I2;
+# display de_curve;
+display cp_modules, capacitor_allocation;
+display bat_inverters, battery_allocation;
+
+display PV_panels, PV_inverter, PV_allocation;
+
 printf "\n\nTotal CPU time:%10.2fs\n\n", _ampl_time + _total_solve_time + _total_shell_time;
