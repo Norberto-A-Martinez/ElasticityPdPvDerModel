@@ -67,6 +67,30 @@ for{iter in 1..max_iter} {
         break;
     }
 }
+
+# in order to save the voltages in pu
+param puV2est {N,S,D,T};
+for {n in N, s in S, d in D, t in T}{
+        let puV2est[n,s,d,t] := sqrt(V2[n,s,d,t])/vb;
+}
+
+table data_voltage OUT "amplcsv" "results/data_voltage.csv" : [N,S,D,T], puV2est;
+write table data_voltage;
+
+table data_substation OUT "amplcsv" "results/se_caseA.csv": [N,S,D,T], Pg, Qg;
+write table data_substation;
+
+printf "\n";
+display liquid_tariff;
+display investment, Ener_SE, power_loss_I2;
+# display de_curve;
+display cp_modules, capacitor_allocation;
+display bat_inverters, battery_allocation;
+
+display PV_panels, PV_inverter, PV_allocation;
+
+printf "\n\nTotal CPU time:%10.2fs\n\n", _ampl_time + _total_solve_time + _total_shell_time;
+
 # display P_inj, P_cons;
 # infisibility diagnosis
 if solve_result = "infeasible" then {
@@ -113,53 +137,3 @@ for {j in 1.._nvars} {
     }
 }
 
-printf "D,S,T,Pg,Qg\n" > ("results\Substation_WithoutAllocation_.csv");
-for {d in D} {
-    for {s in S} {
-        for {t in T} {
-            printf "%d,%d,%d,%5.4f,%5.4f\n", 
-                d, s, t, Pg[SE,s,d,t], Qg[SE,s,d,t] >> ("results\Substation_WithoutAllocation_.csv");
-        }
-    }
-}
-
-printf "n,s,d,V2est\n" > ("results\Voltage_WithoutAllocation_.csv");
-for {d in D, s in S, n in N}{
-    printf'\n%d,%d,%d,[', n, s, d > ("results\Voltage_WithoutAllocation_.csv");
-    for {t in T}{printf '%2.4f\t', sqrt(V2est[n,s,d,t])/vb > ("results\Voltage_WithoutAllocation_.csv");}
-    printf']\n' > ("results\Voltage_WithoutAllocation_.csv");
-}
-printf "\n\n";
-
-# printf "\n\nCurrents";
-# for {d in D, s in S, (l,m,n) in L}{
-#     printf'\n%d:', l;
-#     for {t in T}{printf '\t%4.2f', sqrt(I2[l,m,n,s,d,t]);}
-# }
-# printf "\n\n";
-
-# printf "\n\n max Currents";
-# for {d in D, s in S, (l,m,n) in L}{
-#     printf'\n%d:', l;
-#     printf '\t%4.2f', max {t in T} sqrt(I2[l,m,n,s,d,t])/r3;
-# }
-# printf "\n\n";
-
-# printf "Maximum aparent power at Substation:\n";
-# for {y in Y} {
-#     for {s in S} {
-#         printf " %8.4f", max {t in T} sqrt(Pg[SE,s,d,t]^2 + Qg[SE,s,d,t]^2);
-#     }
-# }
-
-
-printf "\n\n";
-display liquid_tariff;
-display investment, Ener_SE, power_loss_I2;
-# display de_curve;
-display cp_modules, capacitor_allocation;
-display bat_inverters, battery_allocation;
-
-display PV_panels, PV_inverter, PV_allocation;
-
-printf "\n\nTotal CPU time:%10.2fs\n\n", _ampl_time + _total_solve_time + _total_shell_time;

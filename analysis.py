@@ -3,7 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #%% SUBSTATION POWER DELIVERY
-sub = pd.read_csv('results/Substation_WithoutAllocation_.csv')
+sub = pd.read_csv('results/se_caseA.csv')
+# drop rows with N > 0
+sub = sub[sub['N'] == 0]
+sub = sub.drop(columns=['N'])
 
 t = sub['T'].unique()
 s = sub['S'].unique()

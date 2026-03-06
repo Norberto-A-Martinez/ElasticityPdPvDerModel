@@ -87,8 +87,8 @@ param Qd {N}; # reactive power demand
 param PV_0 {N}; # initial PV generation at each node
 
 # EDS variables
-var Pg {N,S,D,T}; # potência ativa fornecida pela subestação no nó i
-var Qg {N,S,D,T}; # potência reativa fornecida pela subestação no nó i
+var Pg {N,S,D,T} >= 0; # potência ativa fornecida pela subestação no nó i
+var Qg {N,S,D,T} >= 0; # potência reativa fornecida pela subestação no nó i
 var Qcp {N,S} >= 0; # potência reativa do capacitor no nó i
 var V2 {N,S,D,T} >= 0; # variável que representa o quadrado de V[i]
 var I2 {L,S,D,T} >= 0; # variável que representa o quadrado de I[i,j]
@@ -143,31 +143,7 @@ var investment = investment_capacitors + investment_battery;
 
 subject to total_investment: investment <= 500e3;
 
-var investment_pv {N} >=0;
-
-subject to investment_pv_limit {n in N}: investment_pv[n] <= 50e3;
-
-subject to investment_pv_def {n in N}:
-    investment_pv[n] = PV_panels[n] * pv_panel_cost + PV_inverter[n] * pv_inverter_cost + PV_allocation[n] * pv_installation_cost;
-
-# # liquid present value of the PV investment.
-# subject to lpv_a {n in N}:
-#     0 <= investment_pv[n]/sum {t in T, s in S, d in D}(Pd[n]*de_curve[n,t,d] - PV_gen[n,s,t])/(1 + 0.4)^30;
-
-# subject to lpv_b {n in N}:
-#     investment_pv[n]/sum {t in T, s in S, d in D}(Pd[n]*de_curve[n,t,d] - PV_gen[n,s,t])/(1 + 0.4)^30 <= 5;
-
-var P_inj {N,S,D,T} >= 0;
-var P_cons {N,S,D,T} >= 0;
-
-subject to liquid_power {n in N, s in S, d in D, t in T}:
-    P_inj[n,s,d,t] - P_cons[n,s,d,t] = PV_gen[n,s,t] - Pd[n]*de_curve[n,t,d];
-
-var liquid_tariff = sum {n in N, s in S, d in D, t in T} prob_S[s] * prob_D[d] * (ET[t]*(P_inj[n,s,d,t] - P_cons[n,s,d,t]) - SUT[t]*(0.9*P_inj[n,s,d,t] + P_cons[n,s,d,t]));
-
 minimize FO1 : investment + cost_p_loss_I2;
-minimize FO2 : liquid_tariff;
-minimize FO3 : investment + cost_p_loss_I2 - liquid_tariff;
 
 /* DISTRIBUTION SYSTEM RESTRICTIONS */
 subject to substation_1 {d in D, s in S, t in T}:
