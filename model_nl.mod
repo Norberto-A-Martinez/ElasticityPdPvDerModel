@@ -27,13 +27,13 @@ param region {N}; # region identifier for each node
 param ET := 0.30988; # energy tariff
 param SUT := 0.44389; # system usage tariff
 
-param i := 0.03; # interest rate
+param i := 0.07; # interest rate
 param theta_pf := 0.97; # PV inverter power factor
-param pv_panel_capacity := 0.7; # PV panel capacity kwp
+param pv_panel_capacity := 1; # PV panel capacity kwp
 param pv_inverter_capacity := 5; # PV inverter capacity kw
-param pv_panel_cost := 0; # PV panel cost
-param pv_inverter_cost := 0; # PV inverter cost
-param pv_installation_cost := 0; # PV installation cost
+param pv_panel_cost := 700; # PV panel cost
+param pv_inverter_cost := 7000; # PV inverter cost
+param pv_installation_cost := 15000; # PV installation cost
 param qqcz {T};
 
 var ex_co {N,M} >= 0;
@@ -43,8 +43,8 @@ var deficit {N,M} >= 0;        # Energia que precisou da rede no mês
 var surplus {N,M} >= 0;        # Energia que sobrou no mês
 var credit_used {N,M} >= 0;    # Créditos sacados do banco neste mês
 var E_paid {N,M} >= 0;         # Energia que será faturada na tarifa ET
-var an_savings {N} >= 0; # annual savings for the prosumer
-var investment_pv {N} >=0;
+var an_savings {N}; # annual savings for the prosumer
+var investment_pv {N};
 var PV_panels {N} integer >= 0;
 var PV_inverter {N} integer >= 0;
 var PV_allocation {N} binary; # variable that indicates if the node n allocation
@@ -77,10 +77,15 @@ var pv_installation_cost_total = sum {n in N} (PV_allocation[n]*pv_installation_
 #     E_cr[n,m] = E_cr[n,m-1] + max(0, ex_net[n,m]) - min(E_cr[n,m-1], max(0, ex_net[n,m]));
 
 subject to PV_panels_allocation {n in N}:
-    PV_panels[n] <= 80*PV_allocation[n];
+    PV_panels[n] <= 400*PV_allocation[n];
 
-subject to pv_inverter_allocation {n in N}:
-    PV_inverter[n] <= 40*PV_allocation[n];
+param max_inverters_factor := 0.2; # Quantos painéis por unidade de Pd são permitidos
+
+subject to PV_panels_allocation_realistic {n in N}:
+    PV_inverter[n] <= (max_inverters_factor * Pd[n]) * PV_allocation[n];
+
+# subject to pv_inverter_allocation {n in N}:
+#     PV_inverter[n] <= 50*PV_allocation[n];
 
 # subject to panels_generation {n in N, m in M, s in S, t in T}:
 #     PV_gen[n,m,s,t] = min(PV_panels[n]*pv_panel_capacity*curve_pv[m,s,t], PV_inverter[n]*pv_inverter_capacity);
@@ -104,14 +109,20 @@ subject to investment_pv_def {n in N}:
 subject to liquid_power {m in M, n in N, s in S, d in D, t in T}:
     E_in[n,m,s,d,t] - E_co[n,m,s,d,t] = (PV_gen[n,m,s,t] - Pd[n]*curve_load[m,d,t])*delt_t;
 
+subject to liquid_power2 {m in M, n in N, s in S, d in D, t in T}:
+    E_co[n,m,s,d,t] <= Pd[n]*curve_load[m,d,t]*delt_t;
+
+subject to liquid_power1 {m in M, n in N, s in S, d in D, t in T}:
+    E_in[n,m,s,d,t] <= PV_gen[n,m,s,t]*delt_t;
+
 subject to expected_injection {n in N, m in M}:
-    ex_in[n,m] = sum {t in T, s in S, d in D} E_in[n,m,s,d,t]*prob_S[m,s]*prob_D[m,d];
+    ex_in[n,m] = 30.4 * sum {t in T, s in S, d in D} E_in[n,m,s,d,t]*prob_S[m,s]*prob_D[m,d];
 
 subject to expected_consumption {n in N, m in M}:
-    ex_co[n,m] = sum {t in T, s in S, d in D} E_co[n,m,s,d,t]*prob_S[m,s]*prob_D[m,d];
+    ex_co[n,m] = 30.4 * sum {t in T, s in S, d in D} E_co[n,m,s,d,t]*prob_S[m,s]*prob_D[m,d];
 
 subject to def_cost_con {n in N, m in M}:
-    cost_consumer[n,m] = (ET + SUT)*ex_co[n,m];
+    cost_consumer[n,m] = (ET + SUT) * 30.4 * sum {t in T, s in S, d in D} Pd[n]*curve_load[m,d,t]*prob_S[m,s]*prob_D[m,d];
 
 # Balanço Mensal Esperado
 subject to expected_net_balancea {n in N, m in M}:
@@ -144,17 +155,23 @@ subject to def_energy_credit {n in N, m in M: m > 1}:
 subject to def_E_paid {n in N, m in M}:
     E_paid[n,m] = deficit[n,m] - credit_used[n,m];
 
+param taxa_fioB := 0.9;
 # Custo do Prosumidor
 subject to def_cost_pro {n in N, m in M}:
-    cost_prosumer[n,m] = ET * E_paid[n,m] + SUT * (0.9 * ex_in[n,m] + ex_co[n,m]);
+    cost_prosumer[n,m] = 
+        # 1. Paga tarifa cheia sobre o que usou da rede e não tinha crédito para cobrir
+        (ET + SUT) * E_paid[n,m] + 
+        
+        # 2. Paga apenas a taxa do Fio B sobre TUDO que conseguiu compensar (deste mês + banco)
+        (SUT * taxa_fioB) * (ex_co[n,m] - deficit[n,m] + credit_used[n,m]);
 
 subject to savings_def {n in N}:
     an_savings[n] = sum {m in M} (cost_consumer[n,m] - cost_prosumer[n,m]);
 
-# subject to lpv_a {n in N}:
-#     investment_pv[n] <= sum{y in 1..5}an_savings[n]/(1 + i)^y;
+subject to lpv_a {n in N}:
+    investment_pv[n] <= sum{y in 1..4} an_savings[n]/(1 + i)^y;
 
-minimize FO: sum {n in N, m in M} cost_prosumer[n,m];
+maximize FO: sum {n in N} an_savings[n];
 
 data;
 param:	
@@ -238,16 +255,30 @@ read table load_prob;
 # option solver knitro;
 # option knitro_options "mip_multistart=1 ms_enable=1 outlev=2 threads=12";
 option solver cplex;
-option cplex_options 'names=1 iis=1 conflictalg=4';
-option cplex_options "mipgap = 0.1 outlev=2 threads=12";
+# option cplex_options 'names=1 iis=1 conflictalg=4';
+option cplex_options "mipgap = 0.1 outlev=1 threads=12";
+# fix PV_panels[1] := 10;
+# fix PV_inverter[1] := 10;
+# fix PV_allocation[1] := 1;
 
 solve FO;
-# printf "node deficit surplus ex_co ex_in\n";
+
+
+# printf "month  cost_prosumer, cost_consumer, E_cr, credit_used, deficit, surplus, ex_co, ex_in\n";
 # for {m in M}{
-#     printf "%d %6.2f %6.2f %6.2f %6.2f\n",m ,deficit[1,m], surplus[1,m], ex_co[1,m], ex_in[1,m];
+#     printf "%d %6.2f %6.2f %6.2f %6.2f %6.2f %6.2f %6.2f %6.2f\n",m , cost_prosumer[1,m], cost_consumer[1,m], E_cr[1,m], credit_used[1,m], deficit[1,m], surplus[1,m], ex_co[1,m], ex_in[1,m];
 
 # }
+# printf "\n";
+# printf "power\n";
+# for {t in T}{
+#     printf "%d, %6.2f %6.2f\n", t, PV_gen[1,1,1,t], Pd[1]*curve_load[1,1,t];
+# }
+# printf "\n";
 
-display cost_prosumer, cost_consumer, E_cr, credit_used, deficit, surplus;
-
+printf "\nn: invest, VPL 10\n";
+for {n in N}{
+    printf "%d:\t%8.4f\t%8.4f\n", n, investment_pv[n], sum{y in 1..10}an_savings[n]/(1 + i)^y;
+}
+printf "\n\n";
 display PV_allocation, PV_panels, PV_inverter;
