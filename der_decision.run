@@ -1,0 +1,76 @@
+reset;
+load amplcsv.dll;
+
+option solver cplex;
+option cplex_options "mipgap = 0.1 outlev=1 threads=12";
+
+model model.mod;
+data data.dat;
+
+table tab_d1 IN "amplcsv" "input-data/profiles_long.csv": [T,C], de_curve_type;
+read table tab_d1;
+
+table tab_pv IN "amplcsv" "pv-solution.csv": [N], PV_allocation, PV_inverter, PV_panels;
+read table tab_pv;
+
+data pros_data.dat;
+
+let tag := 0; # 0 linear / 2 conic
+
+# /*to solve with(out) allocation*/
+# fix {n in N} PV_allocation[n] := 0;
+# fix {n in N} battery_allocation[n] := 0;
+# fix {n in N} capacitor_allocation[n] := 0;
+
+# optimization process initialization
+param relaxation_factor := 0.7;
+param max_iter := 2;
+param tolerance := 1e-5;
+
+param V2est_prev {N,S,D,T};
+
+# optimization loop
+for{iter in 1..max_iter} {
+    # Atualiza V2est_prev para relaxação/convergência
+    for {n in N, t in T, d in D, s in S} {
+        let V2est_prev[n,s,d,t] := V2est[n,s,d,t];
+    }
+    # Solve the optimization problem
+    solve FO1;
+    printf "\nErro no calculo da corrente: %4.8f\n", 100*((power_loss_I2-power_loss)/power_loss);
+    # Update the voltages
+    for {t in T, d in D, s in S} {
+        # to make sure that the substation voltage doest change
+        let V2est[SE,s,d,t] := vb^2;  # Mantém a tensão fixa na raiz
+        for {n in N}{
+            let V2est[n,s,d,t] := V2[n,s,d,t];
+            let V2est[n,s,d,t] := relaxation_factor * V2est[n,s,d,t] + (1 - relaxation_factor) * V2est_prev[n,s,d,t];
+            }
+    }
+    # ----------------------------------
+    # Passo 3: Verifica Convergência
+    # ----------------------------------
+    if max {n in N, t in T, d in D, s in S} abs(V2est[n,s,d,t] - V2est_prev[n,s,d,t]) < tolerance then {
+        printf "\n\nConvergencia atingida na iteracao %d\n", iter;
+        break;
+    }
+}
+
+printf "\n";
+display investment, Ener_SE, power_loss_I2;
+display cp_modules, capacitor_allocation;
+display bat_inverters, battery_allocation;
+
+printf "\n\nTotal CPU time:%10.2fs\n\n", _ampl_time + _total_solve_time + _total_shell_time;
+
+# in order to save the voltages in pu
+param puV2est {N,S,D,T};
+for {n in N, s in S, d in D, t in T}{
+        let puV2est[n,s,d,t] := sqrt(V2[n,s,d,t])/vb;
+}
+
+# table data_voltage OUT "amplcsv" "results/data_voltage.csv" : [N,S,D,T], puV2est;
+# write table data_voltage;
+
+# table data_substation OUT "amplcsv" "results/se_caseA.csv": [N,S,D,T], Pg, Qg;
+# write table data_substation;

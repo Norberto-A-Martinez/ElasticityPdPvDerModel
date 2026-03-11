@@ -106,14 +106,13 @@ subject to investment_pv_def {n in N}:
     investment_pv[n] = PV_panels[n]*pv_panel_cost + PV_inverter[n]*pv_inverter_cost + PV_allocation[n]*pv_installation_cost;
 
 # tarifarry model
+var E_net {N,M,S,D,T}; # net energy balance at each node, month, scenario
+
 subject to liquid_power {m in M, n in N, s in S, d in D, t in T}:
-    E_in[n,m,s,d,t] - E_co[n,m,s,d,t] = (PV_gen[n,m,s,t] - Pd[n]*curve_load[m,d,t])*delt_t;
+    E_net[n,m,s,d,t] = (PV_gen[n,m,s,t] - Pd[n]*curve_load[m,d,t])*delt_t;
 
 subject to liquid_power2 {m in M, n in N, s in S, d in D, t in T}:
-    E_co[n,m,s,d,t] <= Pd[n]*curve_load[m,d,t]*delt_t;
-
-subject to liquid_power1 {m in M, n in N, s in S, d in D, t in T}:
-    E_in[n,m,s,d,t] <= PV_gen[n,m,s,t]*delt_t;
+   E_net[n,m,s,d,t] = E_co[n,m,s,d,t] - E_co[n,m,s,d,t];
 
 subject to expected_injection {n in N, m in M}:
     ex_in[n,m] = 30.4 * sum {t in T, s in S, d in D} E_in[n,m,s,d,t]*prob_S[m,s]*prob_D[m,d];
@@ -124,46 +123,44 @@ subject to expected_consumption {n in N, m in M}:
 subject to def_cost_con {n in N, m in M}:
     cost_consumer[n,m] = (ET + SUT) * 30.4 * sum {t in T, s in S, d in D} Pd[n]*curve_load[m,d,t]*prob_S[m,s]*prob_D[m,d];
 
-# Balanço Mensal Esperado
-subject to expected_net_balancea {n in N, m in M}:
-    deficit[n,m] <= ex_co[n,m];
+# # Balanço Mensal Esperado
+# subject to expected_net_balancea {n in N, m in M}:
+#     deficit[n,m] <= ex_co[n,m];
 
-subject to expected_net_balanceb {n in N, m in M}:
-    surplus[n,m] <= ex_in[n,m];
+# subject to expected_net_balanceb {n in N, m in M}:
+#     surplus[n,m] <= ex_in[n,m];
 
-subject to expected_net_balance {n in N, m in M}:
-    deficit[n,m] - surplus[n,m] = ex_co[n,m] - ex_in[n,m];
+# subject to expected_net_balance {n in N, m in M}:
+#     deficit[n,m] - surplus[n,m] = ex_co[n,m] - ex_in[n,m];
 
 # Restrições de Uso de Créditos 
 subject to limit_credit_bank_m1 {n in N, m in M: m == 1}:
-    credit_used[n,m] <= 0; # Mês 1 não tem saldo anterior
+    credit_used[n,m] = 0; # Mês 1 não tem saldo anterior
 
-subject to limit_credit_bank {n in N, m in M: m > 1}:
-    credit_used[n,m] <= E_cr[n,m-1];
+# subject to limit_credit_bank {n in N, m in M: m > 1}:
+#     credit_used[n,m] <= E_cr[n,m-1];
 
-subject to limit_credit_need {n in N, m in M}:
-    credit_used[n,m] <= deficit[n,m];
+# subject to limit_credit_need {n in N, m in M}:
+#     credit_used[n,m] <= ex_co[n,m];
 
 # Atualização do Banco de Créditos
 subject to def_energy_credit_m1 {n in N, m in M: m == 1}:
-    E_cr[n,m] = surplus[n,m] - credit_used[n,m];
+    E_cr[n,m] = ex_in[n,m];
+
+# subject to def_energy_credit {n in N, m in M: m > 1}:
+#     E_cr[n,m] =  surplus[n,m] + E_cr[n,m-1] - credit_used[n,m];
 
 subject to def_energy_credit {n in N, m in M: m > 1}:
-    E_cr[n,m] = E_cr[n,m-1] + surplus[n,m] - credit_used[n,m];
+    E_cr[n,m] = E_cr[n,m-1] + ex_in[n,m] - credit_used[n,m];
 
-# Cálculo da Energia Paga
-subject to def_E_paid {n in N, m in M}:
-    E_paid[n,m] = deficit[n,m] - credit_used[n,m];
+# # Cálculo da Energia Paga
+# subject to def_E_paid {n in N, m in M}:
+#     E_paid[n,m] = ex_co[n,m] - credit_used[n,m];
 
 param taxa_fioB := 0.9;
 # Custo do Prosumidor
 subject to def_cost_pro {n in N, m in M}:
-    cost_prosumer[n,m] = 
-        # 1. Paga tarifa cheia sobre o que usou da rede e não tinha crédito para cobrir
-        (ET + SUT) * E_paid[n,m] + 
-        
-        # 2. Paga apenas a taxa do Fio B sobre TUDO que conseguiu compensar (deste mês + banco)
-        (SUT * taxa_fioB) * (ex_co[n,m] - deficit[n,m] + credit_used[n,m]);
+    cost_prosumer[n,m] = (ET + SUT) * (ex_co[n,m] - credit_used[n,m]) + SUT * taxa_fioB * ex_in[n,m]; # fio b on what was compensated by the prosumer
 
 subject to savings_def {n in N}:
     an_savings[n] = sum {m in M} (cost_consumer[n,m] - cost_prosumer[n,m]);
@@ -281,4 +278,8 @@ for {n in N}{
     printf "%d:\t%8.4f\t%8.4f\n", n, investment_pv[n], sum{y in 1..10}an_savings[n]/(1 + i)^y;
 }
 printf "\n\n";
-display PV_allocation, PV_panels, PV_inverter;
+# put in a csv file the results
+printf "N,PV_allocation,PV_panels,PV_inverter\n" > "pv-solution.csv";
+for {n in N}{
+    printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > "pv-solution.csv";
+}

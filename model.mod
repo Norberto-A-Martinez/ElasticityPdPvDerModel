@@ -79,12 +79,14 @@ param SUT {T}; # system usage tariff
 param theta_pf; # PV inverter power factor
 param pv_panel_capacity ; # PV panel capacity kwp
 param pv_inverter_capacity ; # PV inverter capacity kw
-param pv_panel_cost ; # PV panel cost
-param pv_inverter_cost ; # PV inverter cost
-param pv_installation_cost ; # PV installation cost
 param Pd {N}; # active power demand
 param Qd {N}; # reactive power demand
-param PV_0 {N}; # initial PV generation at each node
+param PV_allocation {N}; # csv imported param
+param PV_inverter {N}; # csv imported param
+param PV_panels {N}; # csv imported param
+param pv_installation_cost;
+param pv_inverter_cost;
+param pv_panel_cost;
 
 # EDS variables
 var Pg {N,S,D,T} >= 0; # potência ativa fornecida pela subestação no nó i
@@ -104,9 +106,6 @@ var EoC_ini {N,S} >= 0; # battery initial state of charge
 var bat_disch {N,S,D,T} >= 0; # battery charging power
 var bat_charg {N,S,D,T} >= 0; # battery discharging power
 var EoC {N,S,D,T} >= 0; # battery state of charge
-var PV_allocation {N} binary; # variable that indicates if the node n allocation
-var PV_inverter {N} integer >= 0;
-var PV_panels {N} integer >= 0;
 var PV_gen {N,S,T} >= 0; # PV generation at each node
 var PV_cut {N,S,T} >= 0; # PV curtailed power at each node
 var qPV_gen {N,S,T}; # potência reativa fornecida pela geração distribuída no nó i
@@ -119,29 +118,29 @@ var Dq {L,S,D,T,W} >= 0; # linearization variable for the reactive power flow
 
 # OBJECTIVE FUNCTION
 # social vulnerability index pre-calculated in pros_data.dat
-
 var power_loss_I2 = sum {(l,m,n) in L,  t in T, s in S, d in D} prob_D[d] * prob_S[s] * I2[l,m,n,s,d,t] * R[l,m,n];
 var cost_p_loss_I2 = sum {(l,m,n) in L,  t in T, s in S, d in D} prob_D[d] * prob_S[s] * I2[l,m,n,s,d,t] * R[l,m,n]*(ET[t] + SUT[t]);
-
 
 # capacitor costs
 var investment_capacitors_modules = sum {n in N} (cp_modules[n] * cp_module_cost * cp_size);
 var investment_capacitors_installation = sum {n in N} (capacitor_allocation[n] * capacitor_instal_cost);
 var investment_capacitors = investment_capacitors_modules + investment_capacitors_installation;
+
 #batery costs
 var investment_battery_modules = sum {b in B, n in N} (bat_inverters[n] * cosB[b] * bat_module_capacity);
 var investment_battery_inverter = sum {b in B, n in N} (bat_inverters[n] * cosI[b] * bat_inverter_capacity);
 var investment_battery_installation = sum {n in N} (battery_allocation[n] * battery_instal_cost);
 var investment_battery = investment_battery_modules + investment_battery_inverter + investment_battery_installation;
+
 # PV system costs
-var pv_panel_cost_total = sum {n in N} (PV_panels[n] * pv_panel_cost);
-var pv_inverter_cost_total = sum {n in N} (PV_inverter[n] * pv_inverter_cost);
-var pv_installation_cost_total = sum {n in N} (PV_allocation[n] * pv_installation_cost);
+param pv_panel_cost_total = sum {n in N} (PV_panels[n] * pv_panel_cost);
+param pv_inverter_cost_total = sum {n in N} (PV_inverter[n] * pv_inverter_cost);
+param pv_installation_cost_total = sum {n in N} (PV_allocation[n] * pv_installation_cost);
 
 # total investment
 var investment = investment_capacitors + investment_battery;
 
-subject to total_investment: investment <= 500e3;
+# subject to total_investment: investment <= 500e3;
 
 minimize FO1 : investment + cost_p_loss_I2;
 
@@ -263,18 +262,11 @@ subject to max_energia {n in N,  s in S, t in T, d in D, b in B}:
 subject to min_energia {n in N,  s in S, t in T, d in D, b in B}:
     EoC[n,s,d,t] >= bat_module_capacity * (1-DoD[b]) * bat_inverters[n];
 
-# PV SYSTEM allocation
-subject to PV_panels_allocation {n in N}:
-    PV_panels[n] <= 80*PV_allocation[n];
+subject to PV_inveter_limit {n in N, s in S, t in T}:
+    PV_gen[n,s,t] <= PV_inverter[n] * pv_inverter_capacity;
 
-subject to pv_inverter_allocation {n in N}:
-    PV_inverter[n] <= 20*PV_allocation[n];
-
-subject to panels_generation {n in N, s in S, t in T}:
-    PV_gen[n,s,t] = min (PV_panels[n] * pv_panel_capacity * irrad[t,s], PV_inverter[n] * pv_inverter_capacity);
-
-# subject to PV_inverter_capacity {n in N,  s in S, t in T}:
-#     PV_cut[n,s,t] <= PV_inverter[n] * pv_inverter_capacity;
+subject to PV_panels_limit {n in N, s in S, t in T}:
+    PV_gen[n,s,t] <= PV_panels[n] * pv_panel_capacity * irrad[t,s];
 
 subject to GD_reactive_1 {n in N, s in S, t in T}:
     - PV_gen[n,s,t] * tan(acos(theta_pf)) <= qPV_gen[n,s,t];

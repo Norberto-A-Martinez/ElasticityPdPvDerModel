@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
-
+scenarios = 1
 # loading data and adjusting to hourly blocks
 pv_data = pd.read_csv(glob.glob("input-data/ninja_pv*")[0])
 pv_curves = pv_data['electricity']
@@ -41,16 +41,16 @@ for i, dias in enumerate(dias_por_mes):
     pv_mes_atual = pv_curves_reshaped[dia_inicial:dia_final, :]
     
     # Roda o KMeans
-    kmeans_loads = KMeans(n_clusters=3, random_state=0, n_init=10).fit(load_mes_atual)
-    kmeans_pv = KMeans(n_clusters=3, random_state=0, n_init=10).fit(pv_mes_atual)
+    kmeans_loads = KMeans(n_clusters=scenarios, random_state=0, n_init=10).fit(load_mes_atual)
+    kmeans_pv = KMeans(n_clusters=scenarios, random_state=0, n_init=10).fit(pv_mes_atual)
     
     # Salva os centroides
     centroides_load_por_mes[mes] = kmeans_loads.cluster_centers_
     centroides_pv_por_mes[mes] = kmeans_pv.cluster_centers_
     
     # Calcula e salva as probabilidades
-    contagem_load = np.bincount(kmeans_loads.labels_, minlength=3)
-    contagem_pv = np.bincount(kmeans_pv.labels_, minlength=3)
+    contagem_load = np.bincount(kmeans_loads.labels_, minlength=scenarios)
+    contagem_pv = np.bincount(kmeans_pv.labels_, minlength=scenarios)
     probabilidades_load_por_mes[mes] = contagem_load / dias
     probabilidades_pv_por_mes[mes] = contagem_pv / dias
     
@@ -63,7 +63,7 @@ dados_load_probs = []
 dados_pv_probs = []
 
 for m in range(1, 13):
-    for s in range(3):
+    for s in range(scenarios):
         cenario_id = s + 1
         
         # Armazenando Probabilidades
@@ -83,5 +83,5 @@ for m in range(1, 13):
 # Salvando os arquivos
 pd.DataFrame(dados_load_curvas, columns=['M', 'D', 'T', 'curve_load']).to_csv('input-data/parametros_load_curvas.csv', index=False)
 pd.DataFrame(dados_pv_curvas, columns=['M', 'S', 'T', 'curve_pv']).to_csv('input-data/parametros_pv_curvas.csv', index=False)
-pd.DataFrame(dados_load_probs, columns=['M', 'D', 'prob_load']).to_csv('input-data/parametros_load_probs.csv', index=False)
-pd.DataFrame(dados_pv_probs, columns=['M', 'S', 'prob_pv']).to_csv('input-data/parametros_pv_probs.csv', index=False)
+pd.DataFrame(dados_load_probs, columns=['M', 'D', 'prob_D']).to_csv('input-data/parametros_load_probs.csv', index=False)
+pd.DataFrame(dados_pv_probs, columns=['M', 'S', 'prob_S']).to_csv('input-data/parametros_pv_probs.csv', index=False)
