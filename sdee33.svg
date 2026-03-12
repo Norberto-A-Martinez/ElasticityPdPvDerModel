@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="29.966999cm"
+   height="14.7948cm"
+   overflow="hidden"
+   version="1.1"
+   id="svg45"
+   sodipodi:docname="sdee33.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs45" />
+  <sodipodi:namedview
+     id="namedview45"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.821875"
+     inkscape:cx="610.19011"
+     inkscape:cy="456.88213"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g45"
+     inkscape:document-units="cm" />
+  <g
+     id="g45">
+    <path
+       d="m 18.5001,284.5 c 0,-18.778 15.2223,-34 34,-34 18.7779,0 33.9999,15.222 33.9999,34 0,18.778 -15.222,34 -33.9999,34 -18.7777,0 -34,-15.222 -34,-34 z"
+       stroke="#000000"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path1" />
+    <text
+       font-family="Calibri,Calibri_MSFontService,sans-serif"
+       font-weight="400"
+       font-size="37px"
+       id="text1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman', 'Times New Roman_MSFontService', sans-serif;-inkscape-font-specification:'Times New Roman, Times New Roman_MSFontService, sans-serif'"
+       x="30.179008"
+       y="296.74902">SE</text>
+    <path
+       d="m 172,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path2" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text2"
+       x="165.61"
+       y="244">1</text>
+    <path
+       d="M 86,284 H 1113.53"
+       stroke="#000000"
+       stroke-width="2.33333"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path3" />
+    <path
+       d="m 226,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path4" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text4"
+       x="219.771"
+       y="245">2</text>
+    <path
+       d="m 280,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path5" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text5"
+       x="273.89499"
+       y="245">3</text>
+    <path
+       d="m 333,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path6" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text6"
+       x="326.71201"
+       y="244">4</text>
+    <path
+       d="m 387,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path7" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text7"
+       x="381.00601"
+       y="245">5</text>
+    <path
+       d="m 441,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path8" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text8"
+       x="434.371"
+       y="244">6</text>
+    <path
+       d="m 495,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path9" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text9"
+       x="488.49701"
+       y="244">7</text>
+    <path
+       d="m 549,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path10" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text10"
+       x="542.40997"
+       y="244">8</text>
+    <path
+       d="m 603,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path11" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text11"
+       x="596.45898"
+       y="244">9</text>
+    <path
+       d="m 663,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path12" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text12"
+       x="649.85199"
+       y="244">10</text>
+    <path
+       d="m 726,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path13" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text13"
+       x="714.383"
+       y="244">11</text>
+    <path
+       d="m 791,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path14" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text14"
+       x="778.01099"
+       y="244">12</text>
+    <path
+       d="m 855,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path15" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text15"
+       x="842.54199"
+       y="244">13</text>
+    <path
+       d="m 919,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path16" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text16"
+       x="907.073"
+       y="244">14</text>
+    <path
+       d="m 984,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path17" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text17"
+       x="971.59998"
+       y="244">15</text>
+    <path
+       d="m 1048,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path18" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text18"
+       x="1036.13"
+       y="245">16</text>
+    <path
+       d="m 1112,252 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path19" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text19"
+       x="1100.66"
+       y="244">17</text>
+    <path
+       d="m 171,377 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path20" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text20"
+       x="158.494"
+       y="370">18</text>
+    <path
+       d="m 225,377 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path21" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text21"
+       x="212.892"
+       y="370">19</text>
+    <path
+       d="m 279,377 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path22" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text22"
+       x="266.61801"
+       y="370">20</text>
+    <path
+       d="m 333,377 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path23" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text23"
+       x="320.34399"
+       y="370">21</text>
+    <path
+       d="m 225,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path24" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text24"
+       x="212.164"
+       y="129">22</text>
+    <path
+       d="m 279,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path25" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text25"
+       x="265.909"
+       y="129">23</text>
+    <path
+       d="m 332,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path26" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text26"
+       x="319.65399"
+       y="129">24</text>
+    <path
+       d="m 386,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path27" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text27"
+       x="374.08499"
+       y="129">2</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text28"
+       x="386.08499"
+       y="129">5</text>
+    <path
+       d="m 440,135 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path28" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text29"
+       x="427.99799"
+       y="129">2</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text30"
+       x="439.99799"
+       y="129">6</text>
+    <path
+       d="m 494,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path30" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text31"
+       x="481.04303"
+       y="129">2</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text32"
+       x="493.04303"
+       y="129">7</text>
+    <path
+       d="m 548,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path32" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text33"
+       x="535.474"
+       y="129">28</text>
+    <path
+       d="m 603,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path33" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text34"
+       x="590.48401"
+       y="129">2</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text35"
+       x="602.48401"
+       y="129">9</text>
+    <path
+       d="m 663,135 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path35" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text36"
+       x="650.69501"
+       y="129">30</text>
+    <path
+       d="m 726,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path36" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text37"
+       x="713.75598"
+       y="129">3</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text38"
+       x="725.75598"
+       y="129">1</text>
+    <path
+       d="m 792,136 v 65.011"
+       stroke="#000000"
+       stroke-width="4"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path38" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text39"
+       x="778.888"
+       y="129">3</text>
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       id="text40"
+       x="790.888"
+       y="129">2</text>
+    <path
+       d="m 224,167 109.123,0.735"
+       stroke="#000000"
+       stroke-width="2.33333"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path40" />
+    <path
+       d="M 386,167 H 790.971"
+       stroke="#000000"
+       stroke-width="2.33333"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path41" />
+    <path
+       d="M 171,409 H 332.16"
+       stroke="#000000"
+       stroke-width="2.33333"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path42" />
+    <path
+       d="m 226,178 c 8.837,0 16,0.597 16,1.333 v 88.334 c 0,0.736 -7.163,1.333 -16,1.333"
+       stroke="#000000"
+       stroke-width="1.66667"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path43" />
+    <path
+       d="m 171,300 c 12.15,0 22,0.821 22,1.833 v 87.334 c 0,1.012 -9.85,1.833 -22,1.833"
+       stroke="#000000"
+       stroke-width="1.66667"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path44" />
+    <path
+       d="m 386,175 c 11.598,0 21,0.783 21,1.75 v 88.5 c 0,0.967 -9.402,1.75 -21,1.75"
+       stroke="#000000"
+       stroke-width="1.66667"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path45" />
+  </g>
+</svg>

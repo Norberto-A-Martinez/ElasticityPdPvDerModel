@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
-scenarios = 1
+scenarios = 3
 # loading data and adjusting to hourly blocks
 pv_data = pd.read_csv(glob.glob("input-data/ninja_pv*")[0])
 pv_curves = pv_data['electricity']
