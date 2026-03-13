@@ -16,8 +16,8 @@ param prob_D {M,D}; # probability of occurrence of scenario
 param curve_load {M,D,T}; # load curve for each month, demand scenario and time period
 param curve_pv{M,S,T}; # distributed generation generation profile
 param Pd {N}; # active power demand
-param ET := 0.30988; # energy tariff
-param SUT := 0.44389; # system usage tariff
+param ET; # energy tariff
+param SUT; # system usage tariff
 param i := 0.07; # interest rate
 param theta_pf := 0.97; # PV inverter power factor
 param pv_panel_capacity := 0.7; # PV panel capacity kwp
@@ -51,11 +51,11 @@ subject to investment_pv_def {n in N}:
                      + PV_inverter[n]*pv_inverter_cost 
                      + PV_allocation[n]*pv_installation_cost;
 
-subject to investmentminit {n in N}:
-    investment_pv[n] <= 50e3;
+# subject to investmentminit {n in N}:
+#     investment_pv[n] <= 50e3;
 
-subject to PV_panels_allocation {n in N}:
-    PV_inverter[n] <= (max_inverters_factor * Pd[n]) * PV_allocation[n];
+# subject to PV_panels_allocation {n in N}:
+#     PV_inverter[n] <= (max_inverters_factor * Pd[n]) * PV_allocation[n];
 
 subject to panels_gen_limit_panel {n in N, m in M, s in S, t in T}:
     PV_gen[n,m,s,t] <= PV_panels[n]*pv_panel_capacity*curve_pv[m,s,t];
@@ -204,9 +204,25 @@ table load_prob IN "amplcsv" "input-data/parametros_load_probs.csv": [M,D], prob
 read table load_prob;
 
 option solver cplex;
-option cplex_options "mipgap = 0.1 outlev=1 threads=12";
+option cplex_options "mipgap = 0.1 threads=12";
 
-solve FO;
+let ET:= 0.00988;
+let SUT:= 0.14389;
+
+for {fator in 1..20}{
+    display ET, SUT;
+    solve FO;
+    printf "\n\n";
+    # put in a csv file the results
+    printf "N,PV_allocation,PV_panels,PV_inverter\n" > ("pv-solution_"& fator &".csv");
+    for {n in N}{
+        printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > ("pv-solution_"& fator &".csv");
+    }
+    let ET := ET + 0.1;
+    let SUT := SUT + 0.1;
+
+}
+
 display an_savings;
 
 
