@@ -18,13 +18,13 @@ param curve_pv{M,S,T}; # distributed generation generation profile
 param Pd {N}; # active power demand
 param ET; # energy tariff
 param SUT; # system usage tariff
-param i := 0.07; # interest rate
+param i := (1 + 0.05)^(1/12) - 1; # interest rate
 param theta_pf := 0.97; # PV inverter power factor
 param pv_panel_capacity := 0.7; # PV panel capacity kwp
 param pv_inverter_capacity := 5; # PV inverter capacity kw
-param pv_panel_cost := 100; # PV panel cost
-param pv_inverter_cost := 2000; # PV inverter cost
-param pv_installation_cost := 2500; # PV installation cost
+param pv_panel_cost := 500; # PV panel cost
+param pv_inverter_cost := 7000; # PV inverter cost
+param pv_installation_cost := 4000; # PV installation cost
 param max_inverters_factor := 0.2; # panels per Pd unit allowed
 param qqcz {T};
 param taxa_fioB := 0.9;
@@ -51,8 +51,8 @@ subject to investment_pv_def {n in N}:
                      + PV_inverter[n]*pv_inverter_cost 
                      + PV_allocation[n]*pv_installation_cost;
 
-# subject to investmentminit {n in N}:
-#     investment_pv[n] <= 50e3;
+subject to investmentminit {n in N}:
+    investment_pv[n] <= 30e3;
 
 # subject to PV_panels_allocation {n in N}:
 #     PV_inverter[n] <= (max_inverters_factor * Pd[n]) * PV_allocation[n];
@@ -120,77 +120,19 @@ subject to def_savings {n in N}:
     an_savings[n] = sum {m in M} (cost_consumer[n,m] - cost_prosumer[n,m]);
 
 subject to investiment_limt_by_PresentValue {n in N}:
-    investment_pv[n] <= sum{y in 1..4} an_savings[n]/(1 + i)^y;
+    investment_pv[n] <= sum{m in 1..48} (cost_consumer[n,(m-1) mod 12+1] - cost_prosumer[n,(m-1) mod 12+1])/(1 + i)^m;
 
-minimize FO: sum {n in N, m in M} cost_prosumer[n,m];
+maximize FO: sum{n in N} (sum{m in 1..300} (cost_consumer[n,(m-1) mod 12+1] - cost_prosumer[n,(m-1) mod 12+1])/(1 + i)^m - investment_pv[n]);
 
 data;
-param:	
-T:	qqcz   :=
-1	1
-2	1
-3	1
-4	1
-5	1
-6	1
-7	1
-8	1
-9	1
-10	1
-11	1
-12	1
-13	1
-14	1
-15	1
-16	1
-17	1
-18	1
-19	1
-20	1
-21	1
-22	1
-23	1
-24	1
-;
-
-param:
-N: 	Pd    :=
-0	0    
-1	100  
-2	90   
-3	120  
-4	60   
-5	60   
-6	200  
-7	200  
-8	60   
-9	60   
-10	45   
-11	60   
-12	60   
-13	120  
-14	60   
-15	60   
-16	60   
-17	90   
-18	90   
-19	90   
-20	90   
-21	90   
-22	90   
-23	420  
-24	420  
-25	60   
-26	60   
-27	60   
-28	120  
-29	200  
-30	150  
-31	210  
-32	60   
-;
 
 load amplcsv.dll;
+table _T IN "amplcsv" "input-data/profiles.csv": T <- [T];
+read table _T;
+
+table _Pd IN "amplcsv" "input-data/nodes.csv": N <- [N], Pd;
+read table _Pd;
+
 table load_table IN "amplcsv" "input-data/parametros_load_curvas.csv": [M,D,T], curve_load;
 read table load_table;
 
@@ -214,13 +156,20 @@ for {fator in 1..20}{
     solve FO;
     printf "\n\n";
     # put in a csv file the results
-    printf "N,PV_allocation,PV_panels,PV_inverter\n" > ("pv-solution_"& fator &".csv");
+    printf "N,PV_allocation,PV_panels,PV_inverter\n" > ("results\pv-solution_"& fator &".csv");
     for {n in N}{
-        printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > ("pv-solution_"& fator &".csv");
+        printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > ("results\pv-solution_"& fator &".csv");
     }
-    let ET := ET + 0.1;
-    let SUT := SUT + 0.1;
+    let ET := ET + 0.01;
+    let SUT := SUT + 0.01;
 
+}
+
+# solve FO;
+
+printf "N,PV_allocation,PV_panels,PV_inverter\n";
+for {n in N}{
+    printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n];
 }
 
 display an_savings;
@@ -259,9 +208,6 @@ printf "\nn: invest, VPL 10\n";
 for {n in N}{
     printf "%d:\t%8.4f\t%8.4f\n", n, investment_pv[n], sum{y in 1..10}an_savings[n]/(1 + i)^y;
 }
-printf "\n\n";
-# put in a csv file the results
-printf "N,PV_allocation,PV_panels,PV_inverter\n" > "pv-solution.csv";
-for {n in N}{
-    printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > "pv-solution.csv";
-}
+
+display max{m in M, n in N, s in S, d in D, t in T} e_inst_consu[n,m,s,d,t];
+display max{m in M, n in N, s in S, d in D, t in T} e_inst_injet[n,m,s,d,t];
