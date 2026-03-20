@@ -111,7 +111,7 @@ subject to credid_usage_b {n in N, m in M: m > 1}:
 
 subject to def_cost_prosumer {n in N, m in M}:
     cost_prosumer[n,m] = (ET + SUT) * (con_liqu[n,m] - credit_used[n,m]) 
-            + SUT * taxa_fioB * ex_in[n,m]; # wire b on what was compensated by the prosumer
+            + SUT * taxa_fioB * ex_in[n,m] + con_liqu[n,m]*; # wire b on what was compensated by the prosumer
 
 subject to def_cost_consumer {n in N, m in M}:
     cost_consumer[n,m] = (ET + SUT) * 30.4 * sum {t in T, s in S, d in D} Pd[n]*curve_load[m,d,t]*prob_S[m,s]*prob_D[m,d];
@@ -151,21 +151,21 @@ option cplex_options "mipgap = 0.1 threads=12";
 let ET:= 0.00988;
 let SUT:= 0.14389;
 
-for {fator in 1..20}{
-    display ET, SUT;
-    solve FO;
-    printf "\n\n";
-    # put in a csv file the results
-    printf "N,PV_allocation,PV_panels,PV_inverter\n" > ("results\pv-solution_"& fator &".csv");
-    for {n in N}{
-        printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > ("results\pv-solution_"& fator &".csv");
-    }
-    let ET := ET + 0.01;
-    let SUT := SUT + 0.01;
+# for {fator in 1..20}{
+#     display ET, SUT;
+#     solve FO;
+#     printf "\n\n";
+#     # put in a csv file the results
+#     printf "N,PV_allocation,PV_panels,PV_inverter\n" > ("results\pv-solution_"& fator &".csv");
+#     for {n in N}{
+#         printf "%d,%d,%d,%d\n", n, PV_allocation[n], PV_panels[n], PV_inverter[n] > ("results\pv-solution_"& fator &".csv");
+#     }
+#     let ET := ET + 0.01;
+#     let SUT := SUT + 0.01;
+# display cost_consumer - cost_prosumer;
+# }
 
-}
-
-# solve FO;
+solve FO;
 
 printf "N,PV_allocation,PV_panels,PV_inverter\n";
 for {n in N}{
@@ -177,7 +177,7 @@ display an_savings;
 
 printf "month, \tprosumer, \tconsumer\n";
 for {m in M}{
-    printf "%d\t%10.4f\t%10.4f\n",m ,cost_consumer[1,m], cost_prosumer[1,m] ;
+    printf "%d\t%10.4f\n",m ,cost_consumer[1,m] - cost_prosumer[1,m] ;
 }
 
 printf'\n';
