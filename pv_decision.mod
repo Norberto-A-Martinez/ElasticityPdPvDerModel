@@ -42,8 +42,8 @@ var investment_pv {N};
 var PV_panels {N} integer >= 0;
 var PV_inverter {N} integer >= 0;
 var PV_allocation {N} binary; # variable that indicates if the node n allocation
-var cost_prosumer {N,M};
-var cost_consumer {N,M};
+var cost_prosumer {N,M} >= 0;
+var cost_consumer {N,M} >= 0;
 var PV_gen {N,M,S,T} >= 0; # PV generation at each node
 
 subject to investment_pv_def {n in N}:
@@ -52,7 +52,7 @@ subject to investment_pv_def {n in N}:
                      + PV_allocation[n]*pv_installation_cost;
 
 subject to investmentminit {n in N}:
-    investment_pv[n] <= 30e3;
+    investment_pv[n] <= 50e3;
 
 # subject to PV_panels_allocation {n in N}:
 #     PV_inverter[n] <= (max_inverters_factor * Pd[n]) * PV_allocation[n];
@@ -64,8 +64,7 @@ subject to panels_gen_limit_inverter {n in N, m in M, s in S, t in T}:
     PV_gen[n,m,s,t] <= PV_inverter[n]*pv_inverter_capacity;
 
 subject to liquid_power {m in M, n in N, s in S, d in D, t in T}:
-     e_inst_injet[n,m,s,d,t] - e_inst_consu[n,m,s,d,t] 
-     = (PV_gen[n,m,s,t] - Pd[n]*curve_load[m,d,t])*delt_t;
+     e_inst_injet[n,m,s,d,t] - e_inst_consu[n,m,s,d,t] = (PV_gen[n,m,s,t] - Pd[n]*curve_load[m,d,t])*delt_t;
 
 var bin {N,M} binary; # for the monthly
 var bin2 {N,M,S,D,T} binary; # for the instantaneous
@@ -111,7 +110,7 @@ subject to credid_usage_b {n in N, m in M: m > 1}:
 
 subject to def_cost_prosumer {n in N, m in M}:
     cost_prosumer[n,m] = (ET + SUT) * (con_liqu[n,m] - credit_used[n,m]) 
-            + SUT * taxa_fioB * ex_in[n,m] + con_liqu[n,m]*; # wire b on what was compensated by the prosumer
+            + SUT * taxa_fioB * ex_in[n,m]; # wire b on what was compensated by the prosumer
 
 subject to def_cost_consumer {n in N, m in M}:
     cost_consumer[n,m] = (ET + SUT) * 30.4 * sum {t in T, s in S, d in D} Pd[n]*curve_load[m,d,t]*prob_S[m,s]*prob_D[m,d];
@@ -120,6 +119,7 @@ subject to def_savings {n in N}:
     an_savings[n] = sum {m in M} (cost_consumer[n,m] - cost_prosumer[n,m]);
 
 subject to investiment_limt_by_PresentValue {n in N}:
+    # investment_pv[n] <= 4*sum{m in 1..12} (cost_consumer[n,m] - cost_prosumer[n,m])/(1 + i)^m;
     investment_pv[n] <= sum{m in 1..48} (cost_consumer[n,(m-1) mod 12+1] - cost_prosumer[n,(m-1) mod 12+1])/(1 + i)^m;
 
 maximize FO: sum{n in N} (sum{m in 1..300} (cost_consumer[n,(m-1) mod 12+1] - cost_prosumer[n,(m-1) mod 12+1])/(1 + i)^m - investment_pv[n]);
@@ -148,8 +148,8 @@ read table load_prob;
 option solver cplex;
 option cplex_options "mipgap = 0.1 threads=12";
 
-let ET:= 0.00988;
-let SUT:= 0.14389;
+let ET:= 0.30988;
+let SUT:= 0.44389;
 
 # for {fator in 1..20}{
 #     display ET, SUT;
